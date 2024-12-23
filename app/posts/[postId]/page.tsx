@@ -3,10 +3,9 @@ import getFormattedDate from '@/src/libs/getFormattedDate'
 import Link from 'next/link'
 import React, { JSX } from 'react'
 import NotFound from './not-found'
-type Props = {
-    params: {
-        postId: string
-    }
+import type { Metadata } from 'next'
+interface Props {
+    params: Promise<{ postId: string }>
 }
 export async function generateStaticParams() {
     const posts: Meta[] | undefined = await getPostsMeta()
@@ -16,9 +15,10 @@ export async function generateStaticParams() {
     return posts.map((post) => ({
         postId: post.id,
     }))
-}
+} //(   { params, searchParams }: Props,    parent: ResolvingMetadata  ): Promise<Metadata>
 
-export async function generateMetadata({ params: { postId } }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const postId = (await params).postId
     const post = await getPostByName(`${postId}.mdx`) //deduped!
 
     if (!post) {
@@ -31,7 +31,7 @@ export async function generateMetadata({ params: { postId } }: Props) {
         title: post.meta.title,
     }
 }
-
+//{ params }: { params: { postId: string } }
 const PostPage = async ({ params }: { params: Promise<{ postId: string }> }) => {
     const { postId } = await params
     const path = postId.concat('.mdx')
